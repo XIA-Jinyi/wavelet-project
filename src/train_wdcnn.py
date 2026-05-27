@@ -6,6 +6,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.metrics import roc_auc_score
 from pathlib import Path
+from tqdm import tqdm
 
 from config import FEATURE_DIR, MODEL_DIR, DEVICE, WAVELETS, RATES
 from models.wdcnn import StegoCNN
@@ -53,7 +54,8 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     best_auc, best_state, best_epoch = 0, None, 0
 
-    for ep in range(args.epochs):
+    pbar = tqdm(range(args.epochs), desc="Training")
+    for ep in pbar:
         model.train()
         for xb, yb in train_dl:
             optimizer.zero_grad()
@@ -69,8 +71,7 @@ def main():
             best_auc, best_epoch = auc, ep
             best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
 
-        if (ep + 1) % 20 == 0:
-            print(f"  epoch {ep+1:3d}: val AUC={auc:.4f} (best={best_auc:.4f} @ ep {best_epoch+1})")
+        pbar.set_postfix({"auc": f"{auc:.4f}", "best": f"{best_auc:.4f} @ {best_epoch+1}"})
 
     model.load_state_dict(best_state)
     save_path = MODEL_DIR / f"wdcnn_{suffix}.pt"
