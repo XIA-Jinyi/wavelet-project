@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Dataset (large binary files)
+dataset/BOSSbase_1.01/
+dataset/*.zip
+
+# Trained model weights (regeneratable)
+model/*.pt
+model/*.pkl
+
+# Cached features
+output/features/*.npy
+
+# Generated results & figures
+output/results/*.csv
+output/figures/*.png
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
