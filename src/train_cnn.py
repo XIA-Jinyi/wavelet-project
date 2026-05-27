@@ -68,7 +68,10 @@ def main():
 
         model.eval()
         with torch.no_grad():
-            vp = model(Xv).cpu().numpy().ravel()
+            vp_list = []
+            for i in range(0, len(Xv), args.batch_size):
+                vp_list.append(model(Xv[i:i+args.batch_size]).cpu().numpy().ravel())
+            vp = np.concatenate(vp_list)
             auc = roc_auc_score(yv.cpu().numpy().ravel(), vp)
         if auc > best_auc:
             best_auc, best_epoch = auc, ep
