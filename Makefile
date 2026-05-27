@@ -1,9 +1,9 @@
-N_TRAIN ?= 350
-N_TEST  ?= 150
-RATE    ?= 1.0
+N_TRAIN ?= 500
+N_TEST  ?= 200
+RATE    ?= 0.2
 WAVELET ?= db4
 
-.PHONY: data spearman features train test analyze verify clean
+.PHONY: data spearman features features-raw train-wdcnn train-mlp train-svm train-cnn train-all test test-all analyze verify clean clean-all
 
 # 1. Data preparation
 data:
@@ -17,6 +17,9 @@ spearman:
 features:
 	cd src && python extract_features.py --wavelet $(WAVELET) --rate $(RATE) --n-train $(N_TRAIN) --n-test $(N_TEST)
 
+features-raw:
+	cd src && python extract_features.py --raw-only --n-train $(N_TRAIN) --n-test $(N_TEST) --rate $(RATE)
+
 # 4. Training
 train-wdcnn:
 	cd src && python train_wdcnn.py --wavelet $(WAVELET) --rate $(RATE) --n-train $(N_TRAIN)
@@ -27,14 +30,19 @@ train-mlp:
 train-svm:
 	cd src && python train_svm.py --wavelet $(WAVELET) --rate $(RATE) --n-train $(N_TRAIN)
 
+train-cnn:
+	cd src && python train_cnn.py --rate $(RATE) --n-train $(N_TRAIN)
+
 train-all:
-	for w in haar db4; do \
-		for r in 1.0 1.5 2.0; do \
-			$(MAKE) features WAVELET=$$w RATE=$$r N_TRAIN=7000 N_TEST=3000; \
-			$(MAKE) train-wdcnn WAVELET=$$w RATE=$$r N_TRAIN=7000; \
-			$(MAKE) train-mlp WAVELET=$$w RATE=$$r N_TRAIN=7000; \
-			$(MAKE) train-svm WAVELET=$$w RATE=$$r N_TRAIN=7000; \
+	for r in 0.2 0.6 1.0; do \
+		for w in haar db4; do \
+			$(MAKE) features WAVELET=$$w RATE=$$r; \
+			$(MAKE) train-wdcnn WAVELET=$$w RATE=$$r; \
+			$(MAKE) train-mlp WAVELET=$$w RATE=$$r; \
+			$(MAKE) train-svm WAVELET=$$w RATE=$$r; \
 		done; \
+		$(MAKE) features-raw RATE=$$r; \
+		$(MAKE) train-cnn RATE=$$r; \
 	done
 
 # 5. Testing
@@ -42,21 +50,20 @@ test:
 	cd src && python test.py --wavelet $(WAVELET) --rate $(RATE) --n-train $(N_TRAIN) --n-test $(N_TEST)
 
 test-all:
-	cd src && python test.py --wavelet $(WAVELET) --rate $(RATE) --n-train $(N_TRAIN) --n-test $(N_TEST) --models wdcnn mlp svm
+	for r in 0.2 0.6 1.0; do \
+		for w in haar db4; do \
+			$(MAKE) test WAVELET=$$w RATE=$$r; \
+		done; \
+	done
 
 # 6. Analysis
 analyze:
 	cd src && python analyze.py --n-train $(N_TRAIN)
 
-# One-shot small-scale verification
-verify: data spearman features
-	$(MAKE) train-wdcnn WAVELET=db4 RATE=1.0 N_TRAIN=350
-	$(MAKE) train-mlp WAVELET=db4 RATE=1.0 N_TRAIN=350
-	$(MAKE) train-svm WAVELET=db4 RATE=1.0 N_TRAIN=350
-	$(MAKE) test-all WAVELET=db4 RATE=1.0 N_TRAIN=350 N_TEST=150
-	$(MAKE) analyze N_TRAIN=350
-	@echo "Verification complete. See output/figures/"
-
 clean:
-	rm -rf model/* output/features/* output/results/* output/figures/*
-	@echo "Cleaned model/ and output/"
+	rm -rf output/features/* output/results/* output/figures/*
+	@echo "Cleaned output/"
+
+clean-all: clean
+	rm -rf model/*
+	@echo "Cleaned model/"

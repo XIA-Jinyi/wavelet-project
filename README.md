@@ -21,11 +21,10 @@ make data
 ## 完整流程
 
 ```bash
-# 小规模验证（350 训练 / 150 测试，db4 @ 1.0 bpp，~5 分钟）
-make verify
-
-# 大规模实验（7000 训练 / 3000 测试，所有小波 × 所有嵌入率，耗时较长）
-make train-all N_TRAIN=7000
+# 大规模实验（7000 训练 / 3000 测试，所有小波 × 所有嵌入率，含 PureCNN，耗时较长）
+make train-all N_TRAIN=7000 N_TEST=3000
+make test-all N_TRAIN=7000 N_TEST=3000
+make analyze N_TRAIN=7000 N_TEST=3000
 ```
 
 ## 分步执行
@@ -41,9 +40,10 @@ make features WAVELET=db4 RATE=1.0 N_TRAIN=350 N_TEST=150
 make train-wdcnn WAVELET=db4 RATE=1.0 N_TRAIN=350
 make train-mlp   WAVELET=db4 RATE=1.0 N_TRAIN=350
 make train-svm   WAVELET=db4 RATE=1.0 N_TRAIN=350
+make train-cnn   RATE=1.0 N_TRAIN=350
 
 # 4. 测试 → output/results/*.csv
-make test-all WAVELET=db4 RATE=1.0 N_TRAIN=350 N_TEST=150
+make test WAVELET=db4 RATE=1.0 N_TRAIN=350 N_TEST=150
 
 # 5. 分析 → output/figures/roc_*.png, auc_comparison_*.png + output/results/summary.csv
 make analyze N_TRAIN=350
@@ -54,7 +54,7 @@ make analyze N_TRAIN=350
 | 参数 | 默认值 | 说明 |
 |---|---|---|
 | `WAVELET` | `db4` | 小波基（`haar` / `db4`） |
-| `RATE` | `1.0` | 嵌入率 bpp（`1.0` / `1.5` / `2.0`） |
+| `RATE` | `0.6` | 嵌入率 bpp（`0.2` / `0.6` / `1.0`） |
 | `N_TRAIN` | `350` | 训练图像数 |
 | `N_TEST` | `150` | 测试图像数 |
 

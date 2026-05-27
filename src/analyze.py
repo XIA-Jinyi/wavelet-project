@@ -11,8 +11,8 @@ from pathlib import Path
 
 from config import RESULT_DIR, FIGURE_DIR, WAVELETS, RATES
 
-MODELS = ["wdcnn", "mlp", "svm"]
-COLORS = {"wdcnn": "#e74c3c", "mlp": "#3498db", "svm": "#2ecc71"}
+MODELS = ["wdcnn", "mlp", "svm", "cnn"]
+COLORS = {"wdcnn": "#e74c3c", "mlp": "#3498db", "svm": "#2ecc71", "cnn": "#8e44ad"}
 
 
 def load_csv(path):
@@ -48,17 +48,30 @@ def main():
     roc_curves = {}
 
     for model in MODELS:
-        for wavelet in WAVELETS:
+        if model == "cnn":
             for rate in RATES:
-                path = RESULT_DIR / f"{model}_{wavelet}_{rate:.1f}{suffix}.csv"
+                path = RESULT_DIR / f"cnn_{rate:.1f}{suffix}.csv"
                 if not path.exists():
                     continue
                 y_true, y_prob = load_csv(path)
                 y_pred = (y_prob > 0.5).astype(int)
                 m = evaluate(y_true, y_pred, y_prob)
-                m.update({"model": model, "wavelet": wavelet, "rate": f"{rate:.1f}"})
+                m.update({"model": "cnn", "wavelet": "none", "rate": f"{rate:.1f}"})
                 all_metrics.append(m)
-                roc_curves[(model, wavelet, rate)] = (y_true, y_prob)
+                for wavelet in WAVELETS:
+                    roc_curves[("cnn", wavelet, rate)] = (y_true.copy(), y_prob.copy())
+        else:
+            for wavelet in WAVELETS:
+                for rate in RATES:
+                    path = RESULT_DIR / f"{model}_{wavelet}_{rate:.1f}{suffix}.csv"
+                    if not path.exists():
+                        continue
+                    y_true, y_prob = load_csv(path)
+                    y_pred = (y_prob > 0.5).astype(int)
+                    m = evaluate(y_true, y_pred, y_prob)
+                    m.update({"model": model, "wavelet": wavelet, "rate": f"{rate:.1f}"})
+                    all_metrics.append(m)
+                    roc_curves[(model, wavelet, rate)] = (y_true, y_prob)
 
     if not all_metrics:
         print("No result CSVs found. Run 'make test' first.")
@@ -103,7 +116,12 @@ def main():
 
     # Comparison bar chart — AUC by model × wavelet × rate
     fig, ax = plt.subplots(figsize=(14, 6))
-    x_labels = [f"{m['wavelet']}\n{m['rate']} bpp" for m in all_metrics]
+    x_labels = []
+    for m in all_metrics:
+        if m["model"] == "cnn":
+            x_labels.append(f"cnn\n{m['rate']} bpp")
+        else:
+            x_labels.append(f"{m['wavelet']}\n{m['rate']} bpp")
     x = np.arange(len(all_metrics))
     bar_colors = [COLORS[m["model"]] for m in all_metrics]
     bars = ax.bar(x, [m["auc"] for m in all_metrics], color=bar_colors, edgecolor="white")
