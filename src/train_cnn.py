@@ -69,8 +69,9 @@ def main():
         model.eval()
         with torch.no_grad():
             vp_list = []
-            for i in range(0, len(Xv), args.batch_size):
-                vp_list.append(model(Xv[i:i+args.batch_size]).cpu().numpy().ravel())
+            chunk = (len(Xv) + 3) // 4
+            for i in range(0, len(Xv), chunk):
+                vp_list.append(model(Xv[i:i+chunk]).cpu().numpy().ravel())
             vp = np.concatenate(vp_list)
             auc = roc_auc_score(yv.cpu().numpy().ravel(), vp)
         if auc > best_auc:
