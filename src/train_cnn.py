@@ -71,7 +71,9 @@ def main():
         model.eval()
         with torch.no_grad():
             vp_list = []
-            chunk = (len(Xv) + 3) // 4
+            chunk = (len(Xv) + 7) // 8
+            if DEVICE.type == "cuda":
+                torch.cuda.empty_cache()
             for i in range(0, len(Xv), chunk):
                 vp_list.append(model(Xv[i:i+chunk]).cpu().numpy().ravel())
             vp = np.concatenate(vp_list)

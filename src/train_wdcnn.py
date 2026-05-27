@@ -65,7 +65,13 @@ def main():
 
         model.eval()
         with torch.no_grad():
-            vp = model(Xv).cpu().numpy().ravel()
+            if DEVICE.type == "cuda":
+                torch.cuda.empty_cache()
+            vp_list = []
+            chunk = (len(Xv) + 7) // 8
+            for i in range(0, len(Xv), chunk):
+                vp_list.append(model(Xv[i:i+chunk]).cpu().numpy().ravel())
+            vp = np.concatenate(vp_list)
             auc = roc_auc_score(yv.cpu().numpy().ravel(), vp)
         if auc > best_auc:
             best_auc, best_epoch = auc, ep
