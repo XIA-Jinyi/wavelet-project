@@ -108,7 +108,8 @@ def main():
             ax.plot([0, 1], [0, 1], "k:", linewidth=0.4)
             ax.set_xlim(-0.02, 1.02); ax.set_ylim(-0.02, 1.02)
             ax.set_xlabel("FPR"); ax.set_ylabel("TPR")
-            ax.set_title(f"{wavelet} @ {rate:.1f} bpp"); ax.legend(fontsize=8)
+            ax.set_title(f"{wavelet} @ {rate:.1f} bpp")
+            ax.legend(fontsize=8, loc="lower right")
         plt.tight_layout()
         plt.savefig(FIGURE_DIR / f"roc_{rate:.1f}{suffix}.png", dpi=150)
         plt.close()
@@ -162,12 +163,12 @@ def main():
                 if not np.isnan(auc_mat[i, j]):
                     ax.text(j, i, f"{auc_mat[i, j]:.4f}", ha="center", va="center",
                             fontsize=8, color="white" if auc_mat[i, j] > 0.8 else "black")
-    cbar = plt.colorbar(im, ax=axes, fraction=0.02, pad=0.04)
+    cbar = fig.colorbar(im, ax=axes, fraction=0.02, pad=0.04)
     cbar.set_label("AUC")
-    plt.suptitle(f"AUC heatmap ({args.n_train} train samples)", fontsize=13)
-    plt.tight_layout()
-    plt.savefig(FIGURE_DIR / f"auc_heatmap{suffix}.png", dpi=150)
-    plt.close()
+    fig.suptitle(f"AUC heatmap ({args.n_train} train samples)", fontsize=13)
+    fig.tight_layout()
+    fig.savefig(FIGURE_DIR / f"auc_heatmap{suffix}.png", dpi=150)
+    plt.close(fig)
     print(f"Saved auc_heatmap{suffix}.png")
 
 
