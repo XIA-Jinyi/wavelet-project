@@ -94,7 +94,7 @@ def main():
 
     # ROC curves — one figure per rate
     for rate_i, rate in enumerate(RATES):
-        fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+        fig, axes = plt.subplots(1, 2, figsize=(12, 5))
         for col, wavelet in enumerate(WAVELETS):
             ax = axes[col]
             for model in MODELS:
@@ -109,14 +109,14 @@ def main():
             ax.set_xlim(-0.02, 1.02); ax.set_ylim(-0.02, 1.02)
             ax.set_xlabel("FPR"); ax.set_ylabel("TPR")
             ax.set_title(f"{wavelet} @ {rate:.1f} bpp")
-            ax.legend(fontsize=8, loc="lower left", bbox_to_anchor=(1.01, 0))
-        fig.subplots_adjust(right=0.78, wspace=0.35)
-        fig.savefig(FIGURE_DIR / f"roc_{rate:.1f}{suffix}.png", dpi=150)
-        plt.close(fig)
+            ax.legend(fontsize=8, loc="lower right")
+        plt.tight_layout()
+        plt.savefig(FIGURE_DIR / f"roc_{rate:.1f}{suffix}.png", dpi=150)
+        plt.close()
         print(f"Saved roc_{rate:.1f}{suffix}.png")
 
     # Comparison bar chart — AUC by model × wavelet × rate
-    fig, ax = plt.subplots(figsize=(14, 6))
+    fig, ax = plt.subplots(figsize=(18, 6))
     x_labels = []
     for m in all_metrics:
         if m["model"] == "cnn":
@@ -125,18 +125,17 @@ def main():
             x_labels.append(f"{m['wavelet']}\n{m['rate']} bpp")
     x = np.arange(len(all_metrics))
     bar_colors = [COLORS[m["model"]] for m in all_metrics]
-    bars = ax.bar(x, [m["auc"] for m in all_metrics], color=bar_colors, edgecolor="white")
+    ax.bar(x, [m["auc"] for m in all_metrics], color=bar_colors, edgecolor="white")
     ax.set_xticks(x); ax.set_xticklabels(x_labels, fontsize=8)
     ax.set_ylabel("AUC"); ax.set_ylim(0.4, 1.05)
     ax.axhline(0.5, color="gray", linestyle="--", linewidth=0.5)
-    # Legend
     from matplotlib.patches import Patch
     legend_elements = [Patch(facecolor=COLORS[m], label=m) for m in MODELS]
-    ax.legend(handles=legend_elements)
+    ax.legend(handles=legend_elements, loc="lower left", bbox_to_anchor=(1.01, 0))
     ax.set_title(f"AUC comparison ({args.n_train} train samples)")
-    plt.tight_layout()
-    plt.savefig(FIGURE_DIR / f"auc_comparison{suffix}.png", dpi=150)
-    plt.close()
+    fig.subplots_adjust(right=0.88)
+    fig.savefig(FIGURE_DIR / f"auc_comparison{suffix}.png", dpi=150)
+    plt.close(fig)
     print(f"Saved auc_comparison{suffix}.png")
 
     # Heatmap — AUC matrix per wavelet (models × rates)
