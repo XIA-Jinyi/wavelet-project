@@ -12,6 +12,13 @@ from models.mlp import FeatureMLP
 from models.cnn import PureCNN
 
 
+def predict_batched(model, X, batch_size=256):
+    prob_list = []
+    for i in range(0, len(X), batch_size):
+        prob_list.append(model(X[i:i+batch_size]).cpu().numpy().ravel())
+    return np.concatenate(prob_list)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--wavelet", default="db4", choices=WAVELETS)
@@ -44,7 +51,7 @@ def main():
             model.load_state_dict(ckpt["state_dict"])
             model.eval()
             with torch.no_grad():
-                prob = model(Xt).cpu().numpy().ravel()
+                prob = predict_batched(model, Xt)
 
         elif model_name == "mlp":
             Fc_te = np.load(FEATURE_DIR / f"feat_cover_test_{suffix}.npy")
@@ -59,7 +66,7 @@ def main():
             model.load_state_dict(ckpt["state_dict"])
             model.eval()
             with torch.no_grad():
-                prob = model(Xt).cpu().numpy().ravel()
+                prob = predict_batched(model, Xt)
 
         elif model_name == "svm":
             Fc_te = np.load(FEATURE_DIR / f"feat_cover_test_{suffix}.npy")
@@ -88,7 +95,7 @@ def main():
             model.load_state_dict(ckpt["state_dict"])
             model.eval()
             with torch.no_grad():
-                prob = model(Xt).cpu().numpy().ravel()
+                prob = predict_batched(model, Xt)
             save_path = RESULT_DIR / f"cnn_{args.rate:.1f}_{args.n_train}.csv"
 
         pred = (prob > 0.5).astype(int)
