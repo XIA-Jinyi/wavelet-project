@@ -138,6 +138,38 @@ def main():
     plt.close()
     print(f"Saved auc_comparison{suffix}.png")
 
+    # Heatmap — AUC matrix per wavelet (models × rates)
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    for col, wavelet in enumerate(WAVELETS):
+        ax = axes[col]
+        auc_mat = np.full((len(MODELS), len(RATES)), np.nan)
+        for i, model in enumerate(MODELS):
+            for j, rate in enumerate(RATES):
+                wv = "none" if model == "cnn" else wavelet
+                for m in all_metrics:
+                    if m["model"] == model and m["wavelet"] == wv and m["rate"] == f"{rate:.1f}":
+                        auc_mat[i, j] = m["auc"]
+                        break
+        im = ax.imshow(auc_mat, aspect="auto", cmap="YlOrRd", vmin=0.5, vmax=1.0)
+        ax.set_xticks(range(len(RATES)))
+        ax.set_xticklabels([f"{r:.1f}" for r in RATES], fontsize=9)
+        ax.set_yticks(range(len(MODELS)))
+        ax.set_yticklabels(MODELS, fontsize=9)
+        ax.set_xlabel("Rate (bpp)")
+        ax.set_title(f"{wavelet}")
+        for i in range(len(MODELS)):
+            for j in range(len(RATES)):
+                if not np.isnan(auc_mat[i, j]):
+                    ax.text(j, i, f"{auc_mat[i, j]:.4f}", ha="center", va="center",
+                            fontsize=8, color="white" if auc_mat[i, j] > 0.8 else "black")
+    cbar = plt.colorbar(im, ax=axes, fraction=0.02, pad=0.04)
+    cbar.set_label("AUC")
+    plt.suptitle(f"AUC heatmap ({args.n_train} train samples)", fontsize=13)
+    plt.tight_layout()
+    plt.savefig(FIGURE_DIR / f"auc_heatmap{suffix}.png", dpi=150)
+    plt.close()
+    print(f"Saved auc_heatmap{suffix}.png")
+
 
 if __name__ == "__main__":
     main()
