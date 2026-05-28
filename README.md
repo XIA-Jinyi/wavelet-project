@@ -22,6 +22,7 @@ make data
 
 ```bash
 # 大规模实验（7000 训练 / 3000 测试，所有小波 × 所有嵌入率，含 PureCNN，耗时较长）
+make features-all N_TRAIN=7000 N_TEST=3000
 make train-all N_TRAIN=7000 N_TEST=3000
 make test-all N_TRAIN=7000 N_TEST=3000
 make analyze N_TRAIN=7000 N_TEST=3000
@@ -35,6 +36,8 @@ make spearman WAVELET=db4 RATE=2.0 N_TRAIN=350
 
 # 2. 特征提取 → output/features/*.npy
 make features WAVELET=db4 RATE=1.0 N_TRAIN=350 N_TEST=150
+# 一次性提取所有特征（所有 wavelet × rate + raw）
+make features-all N_TRAIN=350 N_TEST=150
 
 # 3. 训练 → model/*.pt / model/*.pkl
 make train-wdcnn WAVELET=db4 RATE=1.0 N_TRAIN=350
@@ -54,7 +57,7 @@ make analyze N_TRAIN=350
 | 参数 | 默认值 | 说明 |
 |---|---|---|
 | `WAVELET` | `db4` | 小波基（`haar` / `db4`） |
-| `RATE` | `0.6` | 嵌入率 bpp（`0.2` / `0.6` / `1.0`） |
+| `RATE` | `0.6` | 嵌入率 bpp（`0.2` / `0.4` / `0.6` / `0.8` / `1.0`） |
 | `N_TRAIN` | `350` | 训练图像数 |
 | `N_TEST` | `150` | 测试图像数 |
 
@@ -76,5 +79,6 @@ cd src && python train_wdcnn.py --help
 ## 清理
 
 ```bash
-make clean   # 清空 model/ 和 output/
+make clean      # 清空 output/
+make clean-all  # 清空 output/ 和 model/
 ```

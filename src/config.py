@@ -11,7 +11,7 @@ RESULT_DIR = OUTPUT_DIR / "results"
 FIGURE_DIR = OUTPUT_DIR / "figures"
 
 WAVELETS = ["haar", "db4"]
-RATES = [0.2, 0.6, 1.0]
+RATES = [0.2, 0.4, 0.6, 0.8, 1.0]
 
 # Device selection: cuda > mps > cpu
 if torch.cuda.is_available():
