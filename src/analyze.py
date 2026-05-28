@@ -94,7 +94,7 @@ def main():
 
     # ROC curves — one figure per rate
     for rate_i, rate in enumerate(RATES):
-        fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+        fig, axes = plt.subplots(1, 2, figsize=(14, 5))
         for col, wavelet in enumerate(WAVELETS):
             ax = axes[col]
             for model in MODELS:
@@ -109,10 +109,10 @@ def main():
             ax.set_xlim(-0.02, 1.02); ax.set_ylim(-0.02, 1.02)
             ax.set_xlabel("FPR"); ax.set_ylabel("TPR")
             ax.set_title(f"{wavelet} @ {rate:.1f} bpp")
-            ax.legend(fontsize=8, loc="lower right")
-        plt.tight_layout()
-        plt.savefig(FIGURE_DIR / f"roc_{rate:.1f}{suffix}.png", dpi=150)
-        plt.close()
+            ax.legend(fontsize=8, loc="lower left", bbox_to_anchor=(1.01, 0))
+        fig.subplots_adjust(right=0.78, wspace=0.35)
+        fig.savefig(FIGURE_DIR / f"roc_{rate:.1f}{suffix}.png", dpi=150)
+        plt.close(fig)
         print(f"Saved roc_{rate:.1f}{suffix}.png")
 
     # Comparison bar chart — AUC by model × wavelet × rate
